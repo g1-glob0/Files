@@ -38,15 +38,9 @@ def chat(message: str, system_message: str):
 
 def respond(
     message,
-    history: list[tuple[str, str]],
-    max_tokens,
-    temperature,
-    top_p,
+    history: list[dict],
     system_message="Você é um chatbot do Micewine. Evite responder perguntas que não estejam relacionadas a emuladores de PC para Android, como configurações do box64, DXVK, FEX-Core, etc. Os emuladores são Winlator, Micewine, Gamehub, Gamefusion, Mobox ou outros emuladores de PC para Android que você conheça. Mensagem do usuário: "
 ):
-    # Incrementa a mensagem do sistema com a mensagem do usuário
-    messages = [{"role": "system", "content": message}]
-
     for val in history:
         if val[0]:
             messages.append({"role": "user", "content": val[0]})
@@ -63,17 +57,9 @@ https://www.gradio.app/docs/chatinterface
 demo = gr.ChatInterface(
     respond,
     additional_inputs=[
-        gr.Slider(minimum=1, maximum=2048, value=512, step=1, label="Max new tokens"),
-        gr.Slider(minimum=0.1, maximum=4.0, value=0.7, step=0.1, label="Temperature"),
-        gr.Slider(
-            minimum=0.1,
-            maximum=1.0,
-            value=0.95,
-            step=0.05,
-            label="Top-p (nucleus sampling)",
-        ),
-        gr.JSON(label="Histórico", value=[[]])
+        gr.JSON(label="Histórico")
     ],
+    type="messages"
 )
 
 if __name__ == "__main__":
