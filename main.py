@@ -72,6 +72,7 @@ demo = gr.ChatInterface(
             step=0.05,
             label="Top-p (nucleus sampling)",
         ),
+        gr.JSON(label="Histórico", value=[[]])
     ],
 )
 
