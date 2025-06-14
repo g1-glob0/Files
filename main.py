@@ -10,28 +10,42 @@ https://github.com/xtekky/g4f
 # Configuração do cliente com provedores de pesquisa
 client = Client()
 
-def chat(message: str):
+# Lista de palavras-chave que ativam a pesquisa
+keywords = [
+    "winlator", "micewine", "gamehub", "gamefusion", "mobox", "box64", "dxvk", "fex-core", "wine", "proton"
+]
+
+def should_search(message: str) -> bool:
     """
-    Executa uma pesquisa na web usando `get_search_message` e retorna a resposta.
+    Verifica se a mensagem contém alguma palavra-chave da lista.
     """
+    return any(keyword.lower() in message.lower() for keyword in keywords)
+
+def chat(message: str, system_message: str):
+    """
+    Executa uma pesquisa na web apenas se a mensagem contiver palavras-chave.
+    """
+    web_search_enabled = should_search(message)
+    combined_message = system_message + message
+
     response = client.chat.completions.create(
         model="gpt-4o",
-        messages=[{"role": "user", "content": message}],
-        web_search=True
+        messages=[{"role": "user", "content": combined_message}],
+        web_search=web_search_enabled
     )
 
     return response.choices[0].message.content
 
-
 def respond(
     message,
     history: list[tuple[str, str]],
-    system_message,
     max_tokens,
     temperature,
     top_p,
+    system_message="Você é um chatbot do Micewine. Evite responder perguntas que não estejam relacionadas a emuladores de PC para Android, como configurações do box64, DXVK, FEX-Core, etc. Os emuladores são Winlator, Micewine, Gamehub, Gamefusion, Mobox ou outros emuladores de PC para Android que você conheça. Mensagem do usuário: "
 ):
-    messages = [{"role": "system", "content": system_message}]
+    # Incrementa a mensagem do sistema com a mensagem do usuário
+    messages = [{"role": "system", "content": message}]
 
     for val in history:
         if val[0]:
@@ -39,10 +53,8 @@ def respond(
         if val[1]:
             messages.append({"role": "assistant", "content": val[1]})
 
-    messages.append({"role": "user", "content": message})
-
-    response = chat(message)
-
+    response = chat(message, system_message)
+    yield response
 
 """
 Para informações sobre como personalizar o ChatInterface, consulte a documentação do Gradio: 
@@ -51,7 +63,6 @@ https://www.gradio.app/docs/chatinterface
 demo = gr.ChatInterface(
     respond,
     additional_inputs=[
-        gr.Textbox(value="Avoid answering questions that are not related to PC emulators for Android, such as box64 settings, DXVK, FEX-Core, etc. Emulators are Winlator, Micewine, Gamehub Gamefusion, Mobox or others that you know.", label="System message"),
         gr.Slider(minimum=1, maximum=2048, value=512, step=1, label="Max new tokens"),
         gr.Slider(minimum=0.1, maximum=4.0, value=0.7, step=0.1, label="Temperature"),
         gr.Slider(
