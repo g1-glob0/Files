@@ -58,8 +58,7 @@ demo = gr.ChatInterface(
     respond,
     additional_inputs=[
         gr.JSON(label="Histórico")
-    ],
-    type="messages"
+    ]
 )
 
 if __name__ == "__main__":
